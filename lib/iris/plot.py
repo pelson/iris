@@ -479,6 +479,18 @@ def contourf(cube, *args, **kwargs):
             # Draw the lines just *below* the polygons to ensure we minimise any boundary shift.
             zorder = result.collections[0].zorder - 1
             contour(cube, levels=levels, colors=colors, antialiased=True, zorder=zorder, coords=coords)
+            #for collection in result.collections:
+                #import matplotlib.lines as mlines
+                #ax = collection.axes
+                #import matplotlib.collections as mcollections
+                #c = mcollections.PathCollection(collection.get_paths(), 
+                                                #facecolor='none', 
+                                                #edgecolor=collection.get_facecolor(), antialiased=True, zorder=zorder, 
+                                                #transform=collection.get_transform()) 
+                #ax.add_collection(c)
+                #collection.set_edgecolor('face')
+                #collection.set_linewidth(0.5)
+                #collection.set_visible(False)
 
     return result
 
