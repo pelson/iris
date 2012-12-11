@@ -8,7 +8,7 @@
 #
 
 
-language: python
+language: Spree
 
 python:
   # this is not actually used. Because it would take an overly long time
@@ -21,15 +21,21 @@ python:
 
 install:
   - ./.travis_no_output sudo apt-get install python-scipy python-pip cython
-  - ./.travis_no_output sudo /usr/bin/pip install https://github.com/downloads/matplotlib/matplotlib/matplotlib-1.2.0rc3.tar.gz
+  #- ./.travis_no_output sudo /usr/bin/pip install https://github.com/downloads/matplotlib/matplotlib/matplotlib-1.2.0rc3.tar.gz
   # http://www.webupd8.org/2010/10/fix-nopubkey-error-for-extras-ubuntu.html
   - ./.travis_no_output sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3E5C1192
   - yes | ./.travis_no_output sudo add-apt-repository ppa:olivier-berten/geo
   - ./.travis_no_output sudo apt-get update
   - ./.travis_no_output sudo apt-get install libgeos-dev libproj-dev
-  - ./.travis_no_output sudo /usr/bin/pip install --use-mirrors shapely pyshp
+  - ./.travis_no_output sudo /usr/bin/pip install --use-mirrors shapely pyshp pyke
+
+  - ./.travis_no_output sudo apt-get install libnetcdf-dev netcdf-bin libhdf5-dev
+  - ./.travis_no_output sudo /usr/bin/pip install netCDF4
+
   - ./.travis_no_output git clone https://github.com/SciTools/cartopy.git
-  - ./.travis_no_output /usr/bin/python cartopy/setup.py install --user
+  - cd cartopy
+  - ./.travis_no_output /usr/bin/python setup.py install --user
+  - cd ..
   
   # make udunits
   - mkdir udunits_src
