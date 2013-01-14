@@ -20,6 +20,7 @@
 import iris.tests as tests
 
 from copy import deepcopy
+import datetime
 import netcdftime
 import os
 from types import GeneratorType
@@ -126,6 +127,39 @@ class TestPPHeaderDerived(unittest.TestCase):
             pass
         except Exception, err:
             self.fail("Should return a better error: " + str(err))
+    
+    def test_climatology_bounds_no_wrap(self):
+        f = self.pp
+        f.lbtim = 32
+        f.t1 = t1 = datetime.datetime(1999, 11, 01)
+        f.t2 = t2 = datetime.datetime(2012, 12, 01)
+        
+        dt_format = '%Y-%m-%d %H:%M:%S'
+        expected_mid = datetime.datetime(1999, 11, 16).strftime(dt_format)
+        expected_upper = datetime.datetime(1999, 12, 01).strftime(dt_format)
+        
+        lower, upper, mid_point = f.climatology_times
+        self.assertEqual(lower.strftime(dt_format), t1.strftime(dt_format))
+        self.assertEqual(upper.strftime(dt_format), expected_upper)
+        self.assertEqual(mid_point.strftime(dt_format), expected_mid)
+        self.assertEqual(f.t2.strftime(dt_format), t2.strftime(dt_format))
+
+    def test_climatology_bounds_wrapped_season(self):
+        f = self.pp
+        f.lbtim = 32
+        f.t1 = t1 = datetime.datetime(1999, 11, 01)
+        f.t2 = t2 = datetime.datetime(2012, 02, 15)
+        
+        dt_format = '%Y-%m-%d %H:%M:%S'
+        expected_mid = datetime.datetime(1999, 12, 23).strftime(dt_format)
+        expected_upper = datetime.datetime(2000, 02, 15).strftime(dt_format)
+        
+        lower, upper, mid_point = f.climatology_times
+        self.assertEqual(lower.strftime(dt_format), t1.strftime(dt_format))
+        self.assertEqual(upper.strftime(dt_format), expected_upper)
+        self.assertEqual(mid_point.strftime(dt_format), expected_mid)
+        self.assertEqual(f.t2.strftime(dt_format), t2.strftime(dt_format))
+            
 
 
 @iris.tests.skip_data

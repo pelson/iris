@@ -938,7 +938,7 @@ class PPField(object):
     def y_bounds(self):
         if hasattr(self, "y_lower_bound") and hasattr(self, "y_upper_bound"):
             return numpy.column_stack((self.y_lower_bound, self.y_upper_bound))
-        
+    
     def save(self, file_handle):
         """
         Save the PPField to the given file object (typically created with :func:`open`).
@@ -1139,6 +1139,40 @@ class PPField(object):
     def time_unit(self, time_unit, epoch='epoch'):
         return iris.unit.Unit('%s since %s' % (time_unit, epoch), calendar=self.calendar)
 
+    @property
+    def climatology_times(self):
+        """
+        Return the lower and upper bound and the mid time point of this climatology pp field.
+        
+        This property only functions if ``lbtim.ib == 3`` and returns the data in the form:
+        
+            ``lower, upper, mid_point`` 
+ 
+        """
+        if self.lbtim.ib != 3:
+            raise ValueError('The climatology_times method is only allowed '
+                             'with an lbtim.ib of 3. lbtim '
+                             'was %r.' % self.lbtim)
+        
+        unit = self.time_unit('hours')
+        
+        t1 = self.t1
+        t1_end = deepcopy(self.t2)
+        t1_end.year = self.t1.year
+        
+        t1_hrs = unit.date2num(t1)
+        t1_end_hrs = unit.date2num(t1_end)
+        
+        # handle periods wrapping (such as DJF)
+        if t1_hrs > t1_end_hrs:
+            t1_end.year += 1
+            t1_end_hrs = unit.date2num(t1_end)
+        
+        mid_hrs = (t1_hrs + t1_end_hrs) / 2.0
+        mid_dt = unit.num2date(mid_hrs)
+        
+        return t1, t1_end, mid_dt        
+
     def coord_system(self):
         """Return a CoordSystem for this PPField.
     
@@ -1235,6 +1269,7 @@ class PPField2(PPField):
         self.lbmon = dt.month
         self.lbdat = dt.day
         self.lbhr = dt.hour
+        self.lbmin = dt.minute
         self.lbday = int(dt.strftime('%j'))
         if hasattr(self, '_t1'):
             delattr(self, '_t1')
@@ -1279,6 +1314,7 @@ class PPField3(PPField):
         self.lbmon = dt.month
         self.lbdat = dt.day
         self.lbhr = dt.hour
+        self.lbmin = dt.minute
         self.lbsec = dt.second
         if hasattr(self, '_t1'):
             delattr(self, '_t1')
