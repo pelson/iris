@@ -28,6 +28,7 @@ install:
   - ./.travis_no_output sudo apt-get install libudunits2-dev libhdf5-serial-dev netcdf-bin libnetcdf-dev
   - ./.travis_no_output sudo apt-get install make unzip python-sphinx
   - ./.travis_no_output sudo /usr/bin/pip install pyke netCDF4
+  - ./.travis_no_output sudo apt-get install python-gdal
 
 # grib api
   - ./.travis_no_output sudo apt-get install libjasper-dev
