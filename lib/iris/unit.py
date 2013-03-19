@@ -1254,6 +1254,50 @@ class Unit(iris.util._OrderedHashable):
         return result
 
     @property
+    def latex(self):
+        """
+        The latex of :data:`Unit.origin`.
+
+        This property supports setting the unit's latex value explicitly. No
+        checking is done on the set value.
+
+        For example:
+
+            >>> import iris.unit as unit
+            >>> u = unit.Unit('m s-1')
+            >>> u.latex
+            'W'
+            >>> # Override the latex unit representation.
+            >>> u.latex = 'ms^{-1}'
+            >>> u.latex
+            'ms^{-1}'
+
+        """
+        result = self.__dict__.get('_latex', None)
+        if result is None:
+            result = ''
+            if not (self.is_unknown() or self.is_no_unit()):
+                import iris.unit_tex
+                try:
+                    parsed_unit = iris.unit_tex.UnitParser().parse(self.origin)
+                except (KeyboardInterrupt, SystemExit):
+                        raise
+                except Exception as ex:
+
+                    warnings.warn('Unable to parse the unit {!r}'.format(self.origin))
+                    result = None
+
+                if parsed_unit is not None:
+                    print type(parsed_unit)
+                    re_run = Unit(parsed_unit.UDUNIT2_form())
+                    if re_run.symbol != self.symbol:
+                        warnings.warn('Mis-parsed the unit. Please raise {!r} on '
+                                      'the mailing list.'.format(self.origin))
+                    result = parsed_unit.latex()
+            self.__dict__['_latex'] = result
+        return result
+
+    @property
     def definition(self):
         """
         *(read-only)* The symbolic decomposition of the unit.

@@ -37,12 +37,9 @@ import cartopy.crs
 import cartopy.mpl.geoaxes
 
 
-import iris.cube
-import iris.coord_systems
 import iris.analysis.cartography as cartography
 import iris.coords
-import iris.palette
-import iris.unit
+import iris.palette # registers the iris palettes
 
 
 # Cynthia Brewer citation text.

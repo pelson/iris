@@ -24,9 +24,9 @@ See also: :ref:`matplotlib <matplotlib:users-guide-index>`.
 
 """
 
+import matplotlib
 import matplotlib.pyplot as plt
 
-import iris.config
 import iris.coords
 import iris.plot as iplt
 
@@ -39,15 +39,14 @@ def _title(cube_or_coord, with_units):
         units = cube_or_coord.units
         if with_units and not (units.is_unknown() or
                                units.is_no_unit() or
-                               units == iris.unit.Unit('1')):
+                               units.origin == '1'):
 
-            # For non-time units use the shortest unit representation e.g.
-            # prefer 'K' over 'kelvin', but not '0.0174532925199433 rad'
-            # over 'degrees'
-            if (not units.is_time() and not units.is_time_reference() and
-                len(units.symbol) < len(str(units))):
-                units = units.symbol
-            title += ' / {}'.format(units)
+            if not units.is_time_reference():
+                units = units.latex
+                print units
+                title = '{} / ${}$'.format(title, units)
+            else:
+                title += ' / {}'.format(units)
 
     return title
 
@@ -62,11 +61,11 @@ def _label(cube, mode, result=None, ndims=2, coords=None):
         bar = plt.colorbar(result, orientation='horizontal',
                            drawedges=draw_edges)
         has_known_units = not (cube.units.is_unknown() or cube.units.is_no_unit())
-        if has_known_units and cube.units != iris.unit.Unit('1'):
-            # Use shortest unit representation for anything other than time
-            if (not cube.units.is_time() and not cube.units.is_time_reference() and
-                len(cube.units.symbol) < len(str(cube.units))):
-                bar.set_label(cube.units.symbol)
+        if has_known_units and cube.units.origin != '1':
+            # Use latex unit representation for anything other than time
+            if not cube.units.is_time_reference():
+                bar.set_label('$' + cube.units.latex + '$')
+                print 'setting:', cube.units.latex
             else:
                 bar.set_label(cube.units)
         # Remove the tick which is put on the colorbar by default.
@@ -114,8 +113,16 @@ def contour(cube, *args, **kwargs):
     
     See :func:`iris.plot.contour` for details of valid keyword arguments.
     
+
+    .. note::
+
+        Adds the ``mathtext_match_font`` keyword to disable the default
+        behaviour of calling :func:`update_mathtext_font`. Default is True.
+
     """
     coords = kwargs.get('coords')
+    if kwargs.pop('match_mathtext_font', True):
+        update_mathtext_font()
     result = iplt.contour(cube, *args, **kwargs)
     _label_with_points(cube, coords=coords)
     return result
@@ -138,17 +145,26 @@ def contourf(cube, *args, **kwargs):
         contour(cube, V)
     
     See :func:`iris.plot.contourf` for details of valid keyword arguments.
+
+    .. note::
+
+        Adds the ``mathtext_match_font`` keyword to disable the default
+        behaviour of calling :func:`update_mathtext_font`. Default is True.
     
     """
     coords = kwargs.get('coords')
+    if kwargs.pop('match_mathtext_font', True):
+        update_mathtext_font()
     result = iplt.contourf(cube, *args, **kwargs)
     _label_with_points(cube, result, coords=coords)
     return result
 
 
-def outline(cube, coords=None):
+def outline(cube, coords=None, match_mathtext_font=True):
     """Draws cell outlines on a labelled plot based on the given Cube."""
     result = iplt.outline(cube, coords=coords)
+    if match_mathtext_font:
+        update_mathtext_font()
     _label_with_bounds(cube, coords=coords)
     return result
 
@@ -158,9 +174,16 @@ def pcolor(cube, *args, **kwargs):
     Draws a labelled pseudocolor plot based on the given Cube.
     
     See :func:`iris.plot.pcolor` for details of valid keyword arguments.
+
+    .. note::
+
+        Adds the ``mathtext_match_font`` keyword to disable the default
+        behaviour of calling :func:`update_mathtext_font`. Default is True.
     
     """
     coords = kwargs.get('coords')
+    if kwargs.pop('match_mathtext_font', True):
+        update_mathtext_font()
     result = iplt.pcolor(cube, *args, **kwargs)
     _label_with_bounds(cube, result, coords=coords)
     return result
@@ -172,8 +195,15 @@ def pcolormesh(cube, *args, **kwargs):
     
     See :func:`iris.plot.pcolormesh` for details of valid keyword arguments.
     
+    .. note::
+
+        Adds the ``mathtext_match_font`` keyword to disable the default
+        behaviour of calling :func:`update_mathtext_font`. Default is True.
+
     """
     coords = kwargs.get('coords')
+    if kwargs.pop('match_mathtext_font', True):
+        update_mathtext_font()
     result = iplt.pcolormesh(cube, *args, **kwargs)
     _label_with_bounds(cube, result, coords=coords)
     return result
@@ -185,8 +215,15 @@ def points(cube, *args, **kwargs):
     
     See :func:`iris.plot.points` for details of valid keyword arguments.
     
+    .. note::
+
+        Adds the ``mathtext_match_font`` keyword to disable the default
+        behaviour of calling :func:`update_mathtext_font`. Default is True.
+
     """
     coords = kwargs.get('coords')
+    if kwargs.pop('match_mathtext_font', True):
+        update_mathtext_font()
     result = iplt.points(cube, *args, **kwargs)
     _label_with_points(cube, coords=coords)
     return result
@@ -198,8 +235,26 @@ def plot(cube, *args, **kwargs):
     
     See :func:`iris.plot.plot` for details of valid keyword arguments.
     
+    .. note::
+
+        Adds the ``mathtext_match_font`` keyword to disable the default
+        behaviour of calling :func:`update_mathtext_font`. Default is True.
+
     """
     coords = kwargs.get('coords')
+    if kwargs.pop('match_mathtext_font', True):
+        update_mathtext_font()
     result = iplt.plot(cube, *args, **kwargs)
     _label_with_points(cube, ndims=1, coords=coords)
     return result
+
+
+def update_mathtext_font(font='Bitstream Vera Sans'):
+    """
+    Changes the :data:`matplotlib.rcParams` such that ``mathtext.cal``,
+    and ``mathtext.rm`` are globally set to the given font.
+
+    """
+    matplotlib.rcParams.update({'mathtext.fontset': 'custom',
+                                'mathtext.cal': font,
+                                'mathtext.rm': font})
