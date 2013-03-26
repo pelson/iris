@@ -78,6 +78,14 @@ install:
   - ./.travis_no_output wget -O iris-test-data.zip https://github.com/SciTools/iris-test-data/archive/${IRIS_TEST_DATA_REF}.zip
   - ./.travis_no_output unzip -q iris-test-data.zip
 
+# test OpenDAP server
+  - ./.travis_no_output sudo /usr/bin/pip install --use-mirrors pydap.handlers.netcdf
+  - ./.travis_no_output sudo paster create -t pydap test_server
+  - ./.travis_no_output sudo ln -s $(pwd)/iris-test-data-${IRIS_TEST_DATA_ZIP_DIR_SUFFIX}/test_data ./test_server/data
+  - ./.travis_no_output sudo paster serve ./test_server/server.ini &
+  - ncdump -h "http://localhost:8001/NetCDF/global/xyt/SMALL_total_column_co2.nc.dds"
+
+
 # iris sample data
   - ./.travis_no_output wget -O iris-sample-data.zip https://github.com/SciTools/iris-sample-data/archive/${IRIS_SAMPLE_DATA_REF}.zip
   - ./.travis_no_output unzip -q iris-sample-data.zip
