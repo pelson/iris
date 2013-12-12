@@ -142,12 +142,23 @@ else:
 
 def _generate_cubes(uris, callback):
     """Returns a generator of cubes given the URIs and a callback."""
-    if isinstance(uris, basestring):
+    if isinstance(uris, basestring) or hasattr(uris, 'read'):
         uris = [uris]
+
+    old_uris = uris[:]
+    file_handles, uris = [], []
+    for uri in old_uris:
+        if isinstance(uri, basestring):
+            uris.append(uri)
+        else:
+            file_handles.append(uri)  
 
     # Group collections of uris by their iris handler
     # Create list of tuples relating schemes to part names
-    uri_tuples = sorted(iris.io.decode_uri(uri) for uri in uris)
+    uri_tuples = sorted(iris.io.decode_uri(uri) for uri in uris if isinstance(uri, basestring))
+
+    for cube in iris.io.format_handlers_for_file_handles(file_handles, callback):
+        yield cube
 
     for scheme, groups in (itertools.groupby(uri_tuples, key=lambda x: x[0])):
         # Call each scheme handler with the appropriate URIs

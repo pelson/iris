@@ -619,11 +619,10 @@ class BitwiseInt(SplittableInt):
 class PPDataProxy(object):
     """A reference to the data payload of a single PP field."""
 
-    __slots__ = ('path', 'offset', 'data_len', 'lbpack', 'mask')
+    __slots__ = ('file_resuscitator', 'data_len', 'lbpack', 'mask')
 
-    def __init__(self, path, offset, data_len, lbpack, mask):
-        self.path = path
-        self.offset = offset
+    def __init__(self, file_resuscitator, data_len, lbpack, mask):
+        self.file_resuscitator = file_resuscitator
         self.data_len = data_len
         self.lbpack = lbpack
         self.mask = mask
@@ -644,8 +643,8 @@ class PPDataProxy(object):
             setattr(self, key, val)
 
     def __repr__(self):
-        return '%s(%r, %r, %r, %r, %r)' % \
-                (self.__class__.__name__, self.path, self.offset,
+        return '%s(%r, %r, %r, %r)' % \
+                (self.__class__.__name__, self.file_resuscitator,
                  self.data_len, self.lbpack, self.mask)
 
     def load(self, data_shape, data_type, mdi, deferred_slice):
@@ -668,8 +667,7 @@ class PPDataProxy(object):
 
         """
         # Load the appropriate proxy data conveniently with a context manager.
-        with open(self.path, 'rb') as pp_file:
-            pp_file.seek(self.offset, os.SEEK_SET)
+        with self.file_resuscitator.resucitated() as pp_file:
             data_bytes = pp_file.read(self.data_len)
             data = _read_data_bytes(data_bytes, self.lbpack, data_shape,
                                     data_type, mdi, self.mask)
@@ -1458,7 +1456,7 @@ def make_pp_field(header_values):
 
 
 DeferredArrayBytes = collections.namedtuple('DeferredBytes',
-                                            'fname, position, n_bytes, dtype')
+                                            'file_resuscitator, n_bytes, dtype')
 LoadedArrayBytes = collections.namedtuple('LoadedArrayBytes', 'bytes, dtype')
 
 
@@ -1545,13 +1543,16 @@ def _create_field_data(field, data_shape, land_mask):
         # Get hold of the DeferredArrayBytes instance.
         deferred_bytes = field._data
         # NB. This makes a 0-dimensional array
-        field._data = np.array(PPDataProxy(deferred_bytes.fname, deferred_bytes.position,
+        field._data = np.array(PPDataProxy(deferred_bytes.file_resuscitator,
                                            deferred_bytes.n_bytes, field.lbpack, land_mask))
         field._data_manager = DataManager(data_shape, deferred_bytes.dtype, field.bmdi)
 
 
 def _field_gen(filename, read_data_bytes):
-    pp_file = open(filename, 'rb')
+    if isinstance(filename, basestring): 
+        pp_file = open(filename, 'rb')
+    else:
+        pp_file = filename
 
     # Get a reference to the seek method on the file
     # (this is accessed 3* #number of headers so can provide a small performance boost)
@@ -1598,8 +1599,10 @@ def _field_gen(filename, read_data_bytes):
             # at a higher level.
             pp_field._data = LoadedArrayBytes(pp_file.read(data_len), dtype)
         else:
+            from iris.fileformats.file_resuscitator import FileObjectResuscitator
+            deferred_fh = FileObjectResuscitator.from_handle(pp_file)
             # Provide enough context to read the data bytes later on.
-            pp_field._data = DeferredArrayBytes(filename, pp_file.tell(), data_len, dtype)
+            pp_field._data = DeferredArrayBytes(deferred_fh, data_len, dtype)
             # Seek over the actual data payload.
             pp_file_seek(data_len, os.SEEK_CUR)
 

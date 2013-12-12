@@ -174,6 +174,24 @@ def expand_filespecs(file_specs):
     return sum(value_lists, [])
 
 
+def format_handlers_for_file_handles(file_handles, callback):
+    """Return a format loading handler for the given file handles."""
+    from iris.fileformats.file_resuscitator import FileObjectResuscitator
+    
+    # Create default dict mapping iris format handler to its associated filenames
+    handler_map = collections.defaultdict(list)
+    for orig_fh in file_handles:
+        resuscitator = FileObjectResuscitator.from_handle(orig_fh)
+        with resuscitator.resucitated() as fh:
+            handling_format_spec = iris.fileformats.FORMAT_AGENT.get_spec(os.path.basename(orig_fh.name), fh)
+        handler_map[handling_format_spec].append(orig_fh)
+
+    # Call each iris format handler with the approriate filenames
+    for handling_format_spec, fnames in handler_map.iteritems():
+        for cube in handling_format_spec.handler(fnames, callback):
+            yield cube
+
+
 def load_files(filenames, callback):
     """
     Takes a list of filenames which may also be globs, and optionally a

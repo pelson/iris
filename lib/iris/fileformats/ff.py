@@ -631,9 +631,11 @@ class FF2PP(object):
                                                   data_type)
             else:
                 # Provide enough context to read the data bytes later on.
-                field._data = pp.DeferredArrayBytes(self._filename,
-                                                    data_offset, data_depth,
-                                                    data_type)
+                from iris.fileformats.file_resuscitator import FileObjectResuscitator
+                fr = FileObjectResuscitator.from_handle(ff_file)
+                # Update the position on the file-like.
+                fr.position = data_offset
+                field._data = pp.DeferredArrayBytes(fr, data_depth, data_type)
             yield field
         ff_file.close()
 
