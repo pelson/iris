@@ -796,8 +796,8 @@ bound=(1994-12-01 00:00:00, 1998-12-01 00:00:00)
             # Check compatibility with the shape of the data
             for i, dim in enumerate(data_dims):
                 if coord.shape[i] != self.shape[dim]:
-                    msg = 'Unequal lengths. Cube dimension {} => {};' \
-                          ' coord {!r} dimension {} => {}.'
+                    msg = ('Unequal lengths. Cube dimension {} has length {};'
+                           ' coord {!r} dimension {} has length {}.')
                     raise ValueError(msg.format(dim, self.shape[dim],
                                                 coord.name(), i,
                                                 coord.shape[i]))

@@ -166,5 +166,96 @@ class Test_FieldGroup_structure(tests.IrisTest):
         self.assertStructuresEqual(expected, result)
 
 
+from iris.fileformats.load_and_collate import find_structure, ArrayStructure
+
+class Test_ArrayStructure(tests.IrisTest):
+    def find(self, a):
+        return find_structure(a.flatten())
+    
+    def construct_nd(self, sub_array, sub_dim, shape):
+        assert sub_array.ndim == 1
+        sub_shape = [1 if dim != sub_dim else -1 for dim in range(len(shape))]
+        return sub_array.reshape(sub_shape) * np.ones(shape)
+    
+    def test_1d_len_0(self):
+        a = np.arange(0)
+        self.assertEqual(self.find(a), ArrayStructure(1, a))
+    
+    def test_1d_len_1(self):
+        a = np.arange(1)
+        self.assertEqual(self.find(a), ArrayStructure(1, a))
+    
+    def test_1d(self):
+        a = np.arange(4)
+        self.assertEqual(self.find(a), ArrayStructure(1, a))
+    
+    def test_1d_ones(self):
+        a = np.ones(10)
+        self.assertEqual(self.find(a), ArrayStructure(1, 1))
+
+    def test_3d_ones(self):
+        a = np.ones([10, 2, 1])
+        self.assertEqual(self.find(a), ArrayStructure(1, 1))
+    
+    def test_1d_over_2d_first_dim(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 0, (4, 2))
+        self.assertEqual(self.find(a), ArrayStructure(2, sub))
+
+    def test_1d_over_2d_second_dim(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 1, (2, 4))
+        self.assertEqual(self.find(a), ArrayStructure(1, sub))
+
+    def test_1d_over_3d_first_dim(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 0, (4, 2, 3))
+        self.assertEqual(self.find(a), ArrayStructure(6, sub))
+    
+    def test_1d_over_3d_second_dim(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.array([-1, 3, 1, 2])
+        print '222222222222222222'
+        a = self.construct_nd(sub, 1, (2, 4, 3))
+        self.assertEqual(self.find(a), ArrayStructure(3, sub))
+
+    def test_1d_over_3d_third_dim(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 2, (3, 2, 4))
+        self.assertEqual(self.find(a), ArrayStructure(1, sub))
+    
+    def test_irregular_3d(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 2, (3, 2, 4))
+        a[0, 0, 0] = 5
+        self.assertEqual(self.find(a), None)
+
+    def test_repeated_3d(self):
+        # Make a 2D with a shape of (2, 4)
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 2, (3, 2, 4))
+        a[:, 0, 0] = 1
+        self.assertEqual(self.find(a), None)
+    
+    def test_rolled_3d(self):
+        # Shift the 3D array on by one, making the array 1d.
+        sub = np.arange(4)
+        a = self.construct_nd(sub, 0, (4, 2, 3))
+        a = np.roll(a.flatten(), 1)
+        self.assertEqual(self.find(a), None)
+
+    def test_len_1_3d(self):
+        # Setup a case which triggers an IndexError when identifying
+        # the stride, but the result should still be correct.
+        sub = np.arange(2)
+        a = self.construct_nd(sub, 1, (1, 1, 1))
+        self.assertEqual(self.find(a), ArrayStructure(1, sub))
+
+
 if __name__ == "__main__":
     tests.main()
