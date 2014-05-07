@@ -52,7 +52,7 @@ class FieldGroup(object):
         self.stash = stash
         self._fields = tuple(fields)
         assert len(self._fields) > 0
-        
+
         if isinstance(fields[0], PPField2):
             self._field_t1 = lambda field: (field.lbyr, field.lbmon, field.lbdat,
                                             field.lbhr, field.lbmin)
@@ -130,11 +130,8 @@ class FieldGroup(object):
         return self._unstructured_elements, self._scalar_elements, self._potential_ndarray_elements
 
     def permitted_structures(self):
+        # Must return something currently...
         possible = []
-        
-#        structures = self.structure()
-#        filter_stride_len = lambda length: filter(lambda structure: structure.stride == length, structures)
-
         _, _, vector_structures = self.faster_potential_structures
         filter_stride_len = lambda length: [struct for struct in vector_structures
                                             if struct.array_structure.stride == length]
@@ -170,45 +167,59 @@ class FieldGroup(object):
         
         The optimal, in this case, is defined as that which produces the most
         number of non-trivial dimensions.
+        
+        May return an empty list if no structure can be identified.
 
         """
-        return max(permitted_structures, key=lambda structure: len(structure))
+        if not permitted_structures:
+            return []
+        return max(permitted_structures, key=lambda structure: (np.prod(struc.array_structure.size for struc in structure), len(structure)))
 
-    def element_array_and_dims(self, target_structure):
+    def element_array_and_dims(self, shape):
         """
         Given a target structure, return a dictionary entry for each element
         mapping element name to a numpy array and associated dimensions for
         the array, given the target structure.
 
         """
-        shape = np.array([struct.array_structure.size for struct in target_structure])
+#        shape = tuple(struct.array_structure.size for struct in target_structure)
         elements_and_dimensions = {}
 
-        unstructured_names, _, vector_potentials = self.faster_potential_structures
+        unstructured_names, scalars, vector_potentials = self.faster_potential_structures
 
         for struct in vector_potentials:
             stride_product = 1
             for dim, length in enumerate(shape):
                 if struct.array_structure.stride == stride_product and length == struct.array_structure.size:
-                    vector = self.element_vectors[struct.elements].reshape(tuple(shape) + (-1, ))
+                    vector = self.element_vectors[struct.elements].reshape(shape + (-1, ))
                     # XXX Use the array elements array?
                     # Reduce the dimensionality to a 1d array.
                     vector = vector[tuple(0 if dim != i else slice(None)
                                           for i in range(len(shape)))]
                     elements_and_dimensions[struct.elements] = [vector, [dim]]
+#                    print 'Bar:', shape, self.element_vectors[struct.elements].shape, struct.elements, vector.shape
                     break
                 stride_product *= length
             else:
-                raise ValueError('Should becomes an unstructured array.')
+#                print 'GOING FOR IT:', self.element_vectors[struct.elements].shape, len(self)
+                unstructured_names.append(struct.elements)
+#                pass
+#                raise ValueError('Should becomes an unstructured array.')
 
         for name in unstructured_names:
             # XXX Check the order - it was necessary to fix up the multi-dimensional coordinate construction.
-            elements_and_dimensions[name] = [self.element_vectors[name].reshape(shape, order='F'),
+#            print shape, shape + (-1, )
+#            print 'Inside:', target_structure, len(self), self.element_vectors[name].shape, self.element_vectors[name].reshape(shape + (-1, )).shape
+#            print vector_potentials
+            elements_and_dimensions[name] = [self.element_vectors[name].reshape(shape + (-1, ), order='F'),
                                              range(len(shape))]
+
+        for struct in scalars:
+            elements_and_dimensions[struct.elements] = [self.element_vectors[struct.elements][:1], ()]
 
         for pair in elements_and_dimensions.items():
             arr, dims = pair[1]
-            if arr.ndim > len(dims):
+            if arr.ndim > (len(dims) or 1):
                 # XXX Generalise the collapsing of the second dimension so that it is easily extensible.
                 arr_shape = arr.shape[:-1]
                 extra_length = arr.shape[-1]
@@ -230,23 +241,39 @@ class FieldGroup(object):
         if target_structure is None:
             target_structure = self.optimal_structure(permitted_structures)
 
-        new_dims = tuple(structure.array_structure.size for structure in target_structure)
-        shape = new_dims + self.fields[0].data.shape
+        if not target_structure:
+            new_dims = (len(self), )
+        else:
+            new_dims = tuple(structure.array_structure.size for structure in target_structure)
+
+        # Don't load any of the data, just get the shape from the biggus array.
+        shape = new_dims + self.fields[0]._data.shape
         
-        structures_with_dimensions = self.element_array_and_dims(target_structure)
+        structures_with_dimensions = self.element_array_and_dims(new_dims)
         array_elements = set(structures_with_dimensions.keys())
 
         def gen_fields(fname):
             assert fname is None
             import copy
             field = copy.deepcopy(self.fields[0])
-            field.data = np.empty(shape)
+#            field.data = np.empty(shape)
+            import biggus
             
-            # XXX Actually use real data.
-#            for field_index, data_index in enumerate(np.ndindex(shape)):
-#                print field_index, data_index:
-#                    biggus.LinearMosaic(columns, axis=1) 
-            
+            def groups_of(length, total_length):
+                indices = tuple(range(0, total_length, length)) + (None, )
+                return pairwise(indices)
+    
+            # XXX Todo: Verify that the field order is being interpreted correctly. 
+            next_dim_arrays = [f._data for f in self.fields]
+            for length in new_dims[::-1]:
+                this_dim_arrays = next_dim_arrays
+                next_dim_arrays = []
+                for start, stop in groups_of(length, len(this_dim_arrays)):
+                    sub = biggus.ArrayStack(np.array(this_dim_arrays[start:stop], dtype=object))
+                    next_dim_arrays.append(sub)
+            else:
+                field._data = next_dim_arrays[0]
+
             # Modify the field.
             yield field
 
@@ -263,15 +290,15 @@ class FieldGroup(object):
                 t2, t2_dims = structures_with_dimensions['time2']
                 lbft, lbft_dims = structures_with_dimensions['lbft']
 
-                if 'time' not in array_elements:
-                    t1, t1_dims = field.t1, ()
-
-                if 'time2' not in array_elements:
-                    t2, t2_dims = field.t2, ()
-                
-                if 'lbft' not in array_elements:
-                    lbft, lbft_dims = field.lbft, ()
-
+#                if 'time' not in array_elements:
+#                    t1, t1_dims = field.t1, ()
+#
+#                if 'time2' not in array_elements:
+#                    t2, t2_dims = field.t2, ()
+#                
+#                if 'lbft' not in array_elements:
+#                    lbft, lbft_dims = field.lbft, ()
+#                print structures_with_dimensions
                 coords_and_dims.extend(vector_time_coords(f.lbproc, f.lbtim, f.lbcode, f.time_unit('hours'),
                                                      [t1, t1_dims],
                                                      [t2, t2_dims],
@@ -335,10 +362,6 @@ def collate(fields):
         yield FieldGroup(stash, tuple(fields))
 
 
-
-
-
-
 def find_structure(combined_values):
     # Note: This algorithm will only find distinct value columns/rows/axes any dimension
     # with repeating values will not have its structure identified and will be considered
@@ -350,14 +373,21 @@ def find_structure(combined_values):
     # unique_inds takes us from the sorted unique values back to inds in the input array
     # inds_back_to_orig gives us the indices of each value in the array vs the index in the
     # *sorted* unique array.
-    _, unique_inds, inds_back_to_orig = np.unique(combined_values, return_index=True, return_inverse=True)
-    # what we actually want is inds_back_to_orig in the sort order of the original array.
-    # a[np.choose(inds_back_to_orig, unique_inds)] == a
-    inds_back_to_orig = np.choose(inds_back_to_orig, unique_inds)
-
+    _, unique_inds = np.unique(combined_values, return_index=True)
+    
     # Return the unique values back into a sorted array.
     unique = combined_values[np.sort(unique_inds)]
 
+    # what we actually want is inds_back_to_orig in the sort order of the original array.
+    new_inds = np.empty(combined_values.shape, dtype=unique_inds.dtype)
+    new_inds.fill(-1)
+    
+    for ind, unique_val in enumerate(unique):
+        new_inds[combined_values == unique_val] = ind
+    assert np.all(new_inds > -1)
+
+    inds_back_to_orig = new_inds 
+    
     u_len = len(unique)
     n_fields = combined_values.size
     
@@ -412,10 +442,10 @@ if __name__ == '__main__':
 #                                   '-sv'])
 #    exit()
     
-    if False:
+    if True:
         fname = '/data/local/dataZoo/FF/alyku.pp0'
 #        fname = '/net/project/badc/hiresgw/xjanpa.ph19930101'
-#        fname = '/data/local/itpe/delme/xjanpa.ph19930101'
+        fname = '/data/local/itpe/delme/xjanpa.ph19930101'
         ff = FF2PP(fname)
         fields = list(ff)
     else:
@@ -434,12 +464,20 @@ if __name__ == '__main__':
                     if not callable(v1) and v1 != v2:
                         print '   {}: {}, {}'.format(name, v1, v2)
 
-    for field_group in collate(fields):
+    for i, field_group in enumerate(collate(fields)):
 #        print field_group.faster_potential_structures
 #        print field_group.permitted_structures()
 #        print field_group.element_array_and_dims(field_group.optimal_structure(field_group.permitted_structures()))
+
+        structure = field_group.optimal_structure(field_group.permitted_structures())
+        shape = tuple(struct.array_structure.size for struct in structure)
+
+#        if i != 101:
+#            continue
         cube = field_group.construct_cube()
+#        if len(field_group) == 0:
         print cube.summary(shorten=True)
+        print cube
 #        print c.coord('forecast_period')
 #        break
         continue

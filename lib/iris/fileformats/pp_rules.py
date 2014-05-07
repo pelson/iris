@@ -214,7 +214,7 @@ def scalar_pseudo_level_coords(lbuser_4):
     # Coordinates coming from the lbuser[4] element (pseudo_level)
     # n.b. All inputs must be scalars.
     if lbuser_4 != 0:
-        return ((DimCoord(lbuser_4, long_name='pseudo_level', units='1'), None))
+        return ((DimCoord(lbuser_4, long_name='pseudo_level', units='1'), None), )
     return []
 
 
@@ -237,8 +237,7 @@ def vector_time_coords(lbproc, lbtim, lbcode, hour_time_unit, t1_and_dims, t2_an
     t2, t2_dims = t2_and_dims
     lbft, lbft_dims = lbft_and_dims
     unique_dims = sorted(set(tuple(t1_dims) + tuple(t2_dims) + tuple(lbft_dims)))
-    
-    
+
     t1 = np.array(t1, ndmin=1)
     t2 = np.array(t2, ndmin=1) 
     lbft = np.array(lbft, ndmin=1)
@@ -248,7 +247,7 @@ def vector_time_coords(lbproc, lbtim, lbcode, hour_time_unit, t1_and_dims, t2_an
     for name, array, dims in [('t1', t1, t1_dims),
                               ('t2', t2, t2_dims),
                               ('lbft', lbft, lbft_dims)]:
-        if len(dims) != len(array.shape) and not (array.size == 1 and len(dims) == 0):
+        if (len(dims) or 1) != len(array.shape) and not (array.size == 1 and len(dims) == 0):
             print len(array.shape), len(dims), dims, name
             raise ValueError('Dims and shape mismatch for coord {}.'.format(name))
         for dim, length in zip(dims, array.shape):
@@ -290,6 +289,7 @@ def vector_time_coords(lbproc, lbtim, lbcode, hour_time_unit, t1_and_dims, t2_an
             (lbtim.ib == 0) and \
             (lbtim.ic in [1, 2, 3, 4]) and \
             (len(lbcode) != 5 or (len(lbcode) == 5 and lbcode.ix not in [20, 21, 22, 23] and lbcode.iy not in [20, 21, 22, 23])):
+        raise ValueError('Vectorize needed')
         aux_coords_and_dims.append(AuxCoord(hour_time_unit.date2num(t1), standard_name='time', units=hour_time_unit))
 
     if \
@@ -297,10 +297,12 @@ def vector_time_coords(lbproc, lbtim, lbcode, hour_time_unit, t1_and_dims, t2_an
             (lbtim.ib == 1) and \
             (lbtim.ic in [1, 2, 3, 4]) and \
             (len(lbcode) != 5 or (len(lbcode) == 5 and lbcode.ix not in [20, 21, 22, 23] and lbcode.iy not in [20, 21, 22, 23])):
-        hours_since_t2 = iris.unit.Unit('hours since %s' % t2, calendar=hour_time_unit.calendar)
-        aux_coords_and_dims.append(AuxCoord(hours_since_t2.date2num(t1), standard_name='forecast_period', units='hours'))
-        aux_coords_and_dims.append(AuxCoord(hour_time_unit.date2num(t1), standard_name='time', units=hour_time_unit))
-        aux_coords_and_dims.append(AuxCoord(hour_time_unit.date2num(t2), standard_name='forecast_reference_time', units=hour_time_unit))
+        # XXX Vectorize?
+        assert len(t2) == 1
+        hours_since_t2 = iris.unit.Unit('hours since %s' % t2[0], calendar=hour_time_unit.calendar)
+        aux_coords_and_dims.append([AuxCoord(hours_since_t2.date2num(t1), standard_name='forecast_period', units='hours'), t1_dims])
+        aux_coords_and_dims.append([AuxCoord(hour_time_unit.date2num(t1), standard_name='time', units=hour_time_unit), t1_dims])
+        aux_coords_and_dims.append([AuxCoord(hour_time_unit.date2num(t2), standard_name='forecast_reference_time', units=hour_time_unit), t2_dims])
 
     if \
             (lbtim.ib == 2) and \
@@ -347,6 +349,7 @@ def vector_time_coords(lbproc, lbtim, lbcode, hour_time_unit, t1_and_dims, t2_an
         t1_hours = t_unit.date2num(t1)
         t2_hours = t_unit.date2num(t2)
         period = t2_hours - t1_hours
+        raise ValueError('Vectorize needed')
         aux_coords_and_dims.append(AuxCoord(standard_name='forecast_period', units='hours', points=lbft, bounds=[lbft - period, lbft]))
         aux_coords_and_dims.append(AuxCoord(standard_name='time', units=t_unit, points=t2_hours, bounds=[t1_hours, t2_hours]))
         aux_coords_and_dims.append(AuxCoord(hour_time_unit.date2num(t2) - lbft, standard_name='forecast_reference_time', units=hour_time_unit))
