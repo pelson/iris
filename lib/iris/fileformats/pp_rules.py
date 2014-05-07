@@ -218,12 +218,12 @@ def scalar_pseudo_level_coords(lbuser_4):
     return []
 
 
-def vector_realization_coords(lbrsvd_3):
+def vector_realization_coords(lbrsvd_3_and_dims):
     # Coordinates coming from the lbrsvd[3] element (ensemble)
     # Returns an iterable of coordinates.
-    
+    lbrsvd_3, dims = lbrsvd_3_and_dims
     if np.any(lbrsvd_3 != 0):
-        return [DimCoord(lbrsvd_3, standard_name='realization')]
+        return ([AuxCoord(lbrsvd_3, standard_name='realization'), dims], )
     return []
 
 
