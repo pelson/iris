@@ -3,6 +3,13 @@ from iris.fileformats.ff import FF2PP
 import itertools
 import numpy as np
 
+
+import iris.fileformats.rules
+from iris.fileformats.pp_rules import vector_realization_coords, vector_time_coords
+
+import biggus
+import copy
+
 import netcdftime
 
 from collections import namedtuple
@@ -12,6 +19,12 @@ ElementStructure = namedtuple('ElementStructure', ['elements', 'array_structure'
 
 class ArrayStructure(namedtuple('ArrayStructure',
                                 ['stride', 'unique_ordered_values', 'size'])):
+    """
+    Represents the identified structure of an array, where stride is the
+    step between each unique value being seen in order in the flattened
+    version of the array.
+     
+    """
     def __eq__(self, other):
         stride = getattr(other, 'stride', None)
         arr = getattr(other, 'unique_ordered_values', None)
@@ -254,10 +267,10 @@ class FieldGroup(object):
 
         def gen_fields(fname):
             assert fname is None
-            import copy
+            
             field = copy.deepcopy(self.fields[0])
 #            field.data = np.empty(shape)
-            import biggus
+            
             
             def groups_of(length, total_length):
                 indices = tuple(range(0, total_length, length)) + (None, )
@@ -277,8 +290,7 @@ class FieldGroup(object):
             # Modify the field.
             yield field
 
-        import iris.fileformats.rules
-        from iris.fileformats.pp_rules import vector_realization_coords, vector_time_coords
+        
         def construct_vector_coords(field):
             f = field
             coords_and_dims = []
@@ -363,6 +375,11 @@ def collate(fields):
 
 
 def find_structure(combined_values):
+    """
+    Return the computed ArrayStructure for the given flat array
+    (if a structure exists, otherwise return None).
+
+    """
     # Note: This algorithm will only find distinct value columns/rows/axes any dimension
     # with repeating values will not have its structure identified and will be considered
     # irregular.
@@ -380,11 +397,9 @@ def find_structure(combined_values):
 
     # what we actually want is inds_back_to_orig in the sort order of the original array.
     new_inds = np.empty(combined_values.shape, dtype=unique_inds.dtype)
-    new_inds.fill(-1)
-    
+
     for ind, unique_val in enumerate(unique):
         new_inds[combined_values == unique_val] = ind
-    assert np.all(new_inds > -1)
 
     inds_back_to_orig = new_inds 
     
@@ -435,16 +450,23 @@ def find_structure(combined_values):
     return structure
 
 
+def diff_field(f1, f2, exclude=('data', 'lbegin', 't1', 't2')):
+    """
+    A useful function to print the differences between two fields.
+    """
+    if f1 != f2:
+        print '\nField diff:'
+        for name in dir(f1):
+            if not name.startswith('_') and name not in exclude:
+                v1 = getattr(f1, name, None)
+                v2 = getattr(f2, name, None)
+                if not callable(v1) and v1 != v2:
+                    print '   {}: {}, {}'.format(name, v1, v2)
+
+
 if __name__ == '__main__':
-#    import subprocess
-#    print subprocess.check_call(['/usr/local/sci/bin/nosetests',
-#                                   'iris.tests.unit.fileformats.ff.test_load_and_collate:Test_FieldGroup.test_2d_structure_with_non_viable',
-#                                   '-sv'])
-#    exit()
-    
-    if True:
+    if False:
         fname = '/data/local/dataZoo/FF/alyku.pp0'
-#        fname = '/net/project/badc/hiresgw/xjanpa.ph19930101'
         fname = '/data/local/itpe/delme/xjanpa.ph19930101'
         ff = FF2PP(fname)
         fields = list(ff)
@@ -454,37 +476,19 @@ if __name__ == '__main__':
         from glob import glob
         fields = list(itertools.chain.from_iterable(load_pp(fname) for fname in sorted(glob(fname_template))))
 
-    def diff_field(f1, f2, exclude=('data', 'lbegin', 't1', 't2')):
-        if f1 != f2:
-            print '\nField diff:'
-            for name in dir(f1):
-                if not name.startswith('_') and name not in exclude:
-                    v1 = getattr(f1, name, None)
-                    v2 = getattr(f2, name, None)
-                    if not callable(v1) and v1 != v2:
-                        print '   {}: {}, {}'.format(name, v1, v2)
-
     for i, field_group in enumerate(collate(fields)):
 #        print field_group.faster_potential_structures
 #        print field_group.permitted_structures()
 #        print field_group.element_array_and_dims(field_group.optimal_structure(field_group.permitted_structures()))
 
-        structure = field_group.optimal_structure(field_group.permitted_structures())
-        shape = tuple(struct.array_structure.size for struct in structure)
+#        structure = field_group.optimal_structure(field_group.permitted_structures())
+#        shape = tuple(struct.array_structure.size for struct in structure)
 
-#        if i != 101:
-#            continue
         cube = field_group.construct_cube()
-#        if len(field_group) == 0:
         print cube.summary(shorten=True)
-        print cube
-#        print c.coord('forecast_period')
-#        break
+
         continue
     
-#        if field_group.stash != (1, 3236):
-#            continue
-        
         struct = field_group.structure()
         if len(field_group) > 1:
             if not struct:
