@@ -1,0 +1,387 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>What’s new in Iris 1.7 &mdash; Iris 1.7.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.7.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="top" title="Iris 1.7.0-dev documentation" href="../index.html" />
+    <link rel="next" title="Iris examples" href="../examples/index.html" />
+    <link rel="prev" title="iris.util" href="../iris/iris/util.html" />
+ 
+    <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+    <META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE"> 
+
+    <link rel="stylesheet" href="../_static/style.css" type="text/css" />
+    <script type="text/javascript" src="http://docs.python.org/2/_static/copybutton.js"></script>
+
+  </head>
+  <body>
+<div style="background-color: white; text-align: left; padding: 1px 10px 1px 15px">
+<p style="margin-left: 15px; font-weight:bolder; letter-spacing:0.1ex;">
+<a href="../index.html"><img src="../_static/Iris7_1_trim_100.png" width=101 height=100 border="0" style="vertical-align:middle" alt="Logo"/></a>
+<span style="font-size: 400%; vertical-align:middle"> Iris 1.7 </span>
+</p>
+
+</div>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../examples/index.html" title="Iris examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../iris/iris/util.html" title="iris.util"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">home</a>|&nbsp;</li>
+        <li><a href="../examples/index.html">examples</a>|&nbsp;</li>
+        <li><a href="../gallery.html">gallery</a>|&nbsp;</li>
+        <li><a href="../contents.html">contents</a>|&nbsp;</li>
+ 
+      </ul>
+    </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../contents.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">What&#8217;s new in Iris 1.7</a><ul>
+<li><a class="reference internal" href="#iris-1-7-features">Iris 1.7 features</a></li>
+<li><a class="reference internal" href="#hopefully-included-features">Hopefully included features</a></li>
+<li><a class="reference internal" href="#bugs-fixed">Bugs fixed</a></li>
+<li><a class="reference internal" href="#incompatible-changes">Incompatible changes</a></li>
+<li><a class="reference internal" href="#deprecations">Deprecations</a></li>
+<li><a class="reference internal" href="#documentation-changes">Documentation Changes</a><ul>
+<li><a class="reference internal" href="#reducing-string-auxiliary-coordinates">Reducing string auxiliary coordinates</a></li>
+<li><a class="reference internal" href="#plotting-string-auxiliary-coordinates">Plotting string auxiliary coordinates</a></li>
+<li><a class="reference internal" href="#missing-data-tolerance-for-area-weighted-calculations">Missing data tolerance for area-weighted calculations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../iris/iris/util.html"
+                        title="previous chapter">iris.util</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../examples/index.html"
+                        title="next chapter">Iris examples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/whatsnew/1.7.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="what-s-new-in-iris-1-7">
+<h1>What&#8217;s new in Iris 1.7<a class="headerlink" href="#what-s-new-in-iris-1-7" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Release:</th><td class="field-body">1.7.0</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">XXX</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="iris-1-7-features">
+<h2>Iris 1.7 features<a class="headerlink" href="#iris-1-7-features" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-showcase-biggus-implementation-in-iris admonition" id="showcase">
+<p class="first admonition-title">Showcase: Biggus implementation in Iris</p>
+<p>Biggus supplies lazy array manipulation to Iris so that Iris can load and
+manipulate very large arrays without running out of memory. Manipulating very
+large arrays will still take a long time, but Biggus implementation ensures
+that such manipulation won&#8217;t take a very long time that ends with a memory
+error.</p>
+<p>Note that on the surface nothing will appear to have changed, as Biggus lazy
+arrays are implemented in the underlying code.</p>
+<p>For example:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Without Biggus:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">extremely_large_cube</span><span class="o">.</span><span class="n">collapsed</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="n">iris</span><span class="o">.</span><span class="n">analyis</span><span class="o">.</span><span class="n">MEAN</span><span class="p">)</span>
+<span class="go">Memory Error.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># With Biggus:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">extremely_large_cube</span><span class="o">.</span><span class="n">collapsed</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="n">iris</span><span class="o">.</span><span class="n">analyis</span><span class="o">.</span><span class="n">MEAN</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">&lt;class &#39;iris.cube.Cube&#39;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition-showcase-new-interpolation-and-regridding-api admonition">
+<p class="first admonition-title">Showcase: New interpolation and regridding API</p>
+<p>This release brings with it a new interface for accessing the interpolation and
+regridding capabilities within Iris. This replaces the old, clunky and
+exceedingly long-named interface with one that is much shorter, tidier, more
+unified, and hopefully simpler too.</p>
+<p>Currently linear regridding and interpolation is available via this new API,
+as well as area-weighted regridding.</p>
+<p>Let&#8217;s compare old to new. The following two code snippets return exactly the
+same result but one is achieved with the old API and the other is achieved
+with the new.</p>
+<p>Linear interpolation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Old API:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">interp_cube</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">sample_points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># New API:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scheme</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">Linear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">interp_cube</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">sample_points</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Area-weighted regridding:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Old API:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">regridded_cube</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">experimental</span><span class="o">.</span><span class="n">regrid</span><span class="o">.</span><span class="n">regrid_area_weighted_rectlinear_src_and_grid</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">grid_cube</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># New API:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scheme</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">AreaWeighted</span><span class="p">(</span><span class="n">mdtol</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">regridded_cube</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">regrid</span><span class="p">(</span><span class="n">grid_cube</span><span class="p">,</span> <span class="n">scheme</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition-showcase-cube-math-broadcasting-1076 admonition">
+<p class="first admonition-title">Showcase: Cube math broadcasting (#1076)</p>
+<p>Cube math broadcasting enables mathematical operations between a cube and a resultant
+collapsed cube or slice of the cube without having to do any manual
+broadcasting/padding/stacking.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iris</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iris.tests.stock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cube</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">tests</span><span class="o">.</span><span class="n">stock</span><span class="o">.</span><span class="n">realistic_4d</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">avg_cube</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">collapsed</span><span class="p">(</span><span class="s">&#39;model_level_number&#39;</span><span class="p">,</span> <span class="n">iris</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">MEAN</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">diff</span> <span class="o">=</span> <span class="n">cube</span> <span class="o">-</span> <span class="n">avg_cube</span>
+</pre></div>
+</div>
+<p>Previously this would only work if the collapse/slice took place over the leftmost
+dimensions, through application of NumPy broadcasting rules.</p>
+<p class="last">Addition, subtraction, multiplication and division are all supported.</p>
+</div>
+<ul class="simple">
+<li>Make use of SciPy&#8217;s RegularGridInterpolator for faster regridding.</li>
+<li>Allowed &#8220;no time averaging&#8221; as a column heading in NAME files.</li>
+<li>The NetCDF saver has been extended to allow saving of cubes with hybrid pressure
+auxiliary factories.</li>
+<li>PP/FF loading supports LBLEV of 9999.</li>
+<li>Extended GRIB1 loading to support data on hybrid pressure levels.</li>
+<li><a class="reference internal" href="../iris/iris/coord_categorisation.html#iris.coord_categorisation.add_day_of_year" title="iris.coord_categorisation.add_day_of_year"><tt class="xref py py-func docutils literal"><span class="pre">iris.coord_categorisation.add_day_of_year()</span></tt></a> can be used to add categorised
+day of year coordinates based on time coordinates with non-Gregorian calendars.</li>
+<li>Support for loading data on reduced grids from GRIB files in raw form without
+automatically interpolating to a regular grid.</li>
+<li>The coordinate systems <a class="reference internal" href="../iris/iris/coord_systems.html#iris.coord_systems.Orthographic" title="iris.coord_systems.Orthographic"><tt class="xref py py-class docutils literal"><span class="pre">iris.coord_systems.Orthographic</span></tt></a> and
+<a class="reference internal" href="../iris/iris/coord_systems.html#iris.coord_systems.VerticalPerspective" title="iris.coord_systems.VerticalPerspective"><tt class="xref py py-class docutils literal"><span class="pre">iris.coord_systems.VerticalPerspective</span></tt></a> (for imagery from geostationary
+satellites) have been added.</li>
+<li>Extended NetCDF loading to support the &#8220;ocean sigma over z&#8221; auxiliary coordinate
+factory.</li>
+<li>Support added for loading CF-NetCDF data with bounds arrays that are missing a
+vertex dimension.</li>
+<li><a class="reference internal" href="#strings"><em>Reducing string auxiliary coordinates</em></a> using
+<a class="reference internal" href="../iris/iris/cube.html#iris.cube.Cube.rolling_window" title="iris.cube.Cube.rolling_window"><tt class="xref py py-meth docutils literal"><span class="pre">iris.cube.Cube.rolling_window()</span></tt></a>, allowing for serialization of string coordinates.</li>
+<li>Loading of PP and FF files has been optimised through deferring creation of
+PPField attributes.</li>
+<li>Automatic association of a coordinate&#8217;s CF formula terms variable with the
+data variable associated with that coordinate.</li>
+<li>PP loading translates cross-section height into a dimensional auxiliary coordinate.</li>
+<li>Translation of NAME metadata on height or altitude above ground or sea level
+into the relevant coordinate&#8217;s long name.</li>
+<li><a class="reference internal" href="#plotting"><em>String auxiliary coordinates may be plotted with Iris plotting wrappers</em></a>.</li>
+<li><a class="reference internal" href="../iris/iris/analysis/geometry.html#iris.analysis.geometry.geometry_area_weights" title="iris.analysis.geometry.geometry_area_weights"><tt class="xref py py-func docutils literal"><span class="pre">iris.analysis.geometry.geometry_area_weights()</span></tt></a> now allows for the calculation of
+normalized cell weights.</li>
+<li>Many new translations between the CF spec and STASH codes or GRIB2 parameter codes.</li>
+<li>PP save rules add the data&#8217;s UM Version to the attributes of the  saved file
+when appropriate.</li>
+<li>NetCDF reference surface variable promotion available through the
+<a class="reference internal" href="../iris/iris.html#iris.FUTURE" title="iris.FUTURE"><tt class="xref py py-class docutils literal"><span class="pre">iris.FUTURE</span></tt></a> mechanism.</li>
+<li>A speed improvement in calculation of <a class="reference internal" href="../iris/iris/analysis/geometry.html#iris.analysis.geometry.geometry_area_weights" title="iris.analysis.geometry.geometry_area_weights"><tt class="xref py py-func docutils literal"><span class="pre">iris.analysis.geometry.geometry_area_weights()</span></tt></a>.</li>
+<li><a class="reference internal" href="#mdtol"><em>Missing data tolerance (mdtol)</em></a> for area-weighted calculations allows
+for fractional tolerance of masked data to be specified.</li>
+<li>Handling for patching of the CF conventions global attribute via a defined
+cf_patch_conventions function.</li>
+<li>Concatenate reporting that raises a descriptive error if the concatenation
+process fails.</li>
+</ul>
+</div>
+<div class="section" id="hopefully-included-features">
+<h2>Hopefully included features<a class="headerlink" href="#hopefully-included-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Incorporation of Biggus deferred loading into the GRIB loader (#1137)</li>
+</ul>
+</div>
+<div class="section" id="bugs-fixed">
+<h2>Bugs fixed<a class="headerlink" href="#bugs-fixed" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Data containing more than one reference cube for constructing hybrid height
+coordinates can now be loaded.</li>
+<li>Removed cause of increased margin of error when interpolating.</li>
+<li>Changed floating-point precision used when wrapping points for interpolation.</li>
+<li>Mappables that can be used to generate colorbars are now returned by Iris
+plotting wrappers.</li>
+<li>NetCDF load ignores over-specified formula terms on bounded dimensionless vertical
+coordinates.</li>
+<li>Auxiliary coordinate factory loading now correctly interprets formula term
+varibles for &#8220;atmosphere hybrid sigma pressure&#8221; coordinate data.</li>
+<li>Corrected comparison of NumPy NaN values in cube merge process.</li>
+<li>Fixes for <tt class="xref py py-meth docutils literal"><span class="pre">iris.Cube.intersection()</span></tt> to correct calculating the intersection
+of a cube with split bounds, handling of circular coordinates, and for finding
+a wrapped two-point result.</li>
+<li>A bug affecting <a class="reference internal" href="../iris/iris/cube.html#iris.cube.Cube.extract" title="iris.cube.Cube.extract"><tt class="xref py py-meth docutils literal"><span class="pre">iris.cube.Cube.extract()</span></tt></a> and <a class="reference internal" href="../iris/iris/cube.html#iris.cube.CubeList.extract" title="iris.cube.CubeList.extract"><tt class="xref py py-meth docutils literal"><span class="pre">iris.cube.CubeList.extract()</span></tt></a>
+that led to unexpected behaviour when operating on scalar cubes has been fixed.</li>
+</ul>
+</div>
+<div class="section" id="incompatible-changes">
+<h2>Incompatible changes<a class="headerlink" href="#incompatible-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Saving a cube with a STASH attribute to NetCDF now produces a variable
+with an attribute of &#8220;um_stash_source&#8221; rather than &#8220;ukmo__um_stash_source&#8221;.</li>
+<li>Cubes save to NetCDF with a coordinate system referencing a spherical ellipsoid
+now result in the grid mapping variable containing only the &#8220;earth_radius&#8221; attribute,
+rather than the &#8220;semi_major_axis&#8221; and &#8220;semi_minor_axis&#8221;.</li>
+<li>Collapsing a cube over all of its dimensions now results in a scalar cube rather
+than a 1d cube.</li>
+</ul>
+</div>
+<div class="section" id="deprecations">
+<h2>Deprecations<a class="headerlink" href="#deprecations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="../iris/iris/util.html#iris.util.ensure_array" title="iris.util.ensure_array"><tt class="xref py py-func docutils literal"><span class="pre">iris.util.ensure_array()</span></tt></a> has been deprecated.</li>
+<li>Matplotlib is no longer a core Iris dependency.</li>
+</ul>
+</div>
+<div class="section" id="documentation-changes">
+<h2>Documentation Changes<a class="headerlink" href="#documentation-changes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>A custom colours plotting example has been added.</li>
+<li>An example of reprojecting data and adding annotations has been added.</li>
+<li>A new section, whitepapers, has been added to the documentation. The first item
+added to this section contains a detailed overview of the PP/FF load process.</li>
+</ul>
+<hr class="docutils" />
+<div class="section" id="reducing-string-auxiliary-coordinates">
+<span id="strings"></span><h3>Reducing string auxiliary coordinates<a class="headerlink" href="#reducing-string-auxiliary-coordinates" title="Permalink to this headline">¶</a></h3>
+<p>Auxiliary coordinates containing string data (for example coordinates generated
+with <a class="reference internal" href="../iris/iris/coord_categorisation.html#module-iris.coord_categorisation" title="iris.coord_categorisation"><tt class="xref py py-mod docutils literal"><span class="pre">iris.coord_categorisation</span></tt></a> functions) can now be collapsed in the same way
+as coordinates containing more typical numerical data.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">iris</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="n">cube</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">cube</span><span class="o">.</span><span class="n">Cube</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">sample_coord</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">DimCoord</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">long_name</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">)</span>
+<span class="n">month_coord</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">AuxCoord</span><span class="p">([</span><span class="s">&#39;jan&#39;</span><span class="p">,</span> <span class="s">&#39;feb&#39;</span><span class="p">,</span> <span class="s">&#39;mar&#39;</span><span class="p">,</span> <span class="s">&#39;apr&#39;</span><span class="p">,</span> <span class="s">&#39;may&#39;</span><span class="p">,</span> <span class="s">&#39;jun&#39;</span><span class="p">],</span>
+                                   <span class="n">long_name</span><span class="o">=</span><span class="s">&#39;month&#39;</span><span class="p">)</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">add_dim_coord</span><span class="p">(</span><span class="n">sample_coord</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">add_aux_coord</span><span class="p">(</span><span class="n">month_coord</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">aggregator</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">MEAN</span>
+<span class="n">smoothed</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">rolling_window</span><span class="p">(</span><span class="s">&#39;sample&#39;</span><span class="p">,</span> <span class="n">aggregator</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plotting-string-auxiliary-coordinates">
+<span id="plotting"></span><h3>Plotting string auxiliary coordinates<a class="headerlink" href="#plotting-string-auxiliary-coordinates" title="Permalink to this headline">¶</a></h3>
+<p>Auxiliary coordinates containing string data can also now be passed to Iris plotting
+wrappers and used as the data to be plotted on an axis.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">import</span> <span class="nn">iris</span>
+<span class="kn">from</span> <span class="nn">iris.coord_categorisation</span> <span class="kn">import</span> <span class="n">add_month</span>
+<span class="kn">import</span> <span class="nn">iris.quickplot</span> <span class="kn">as</span> <span class="nn">qplt</span>
+
+<span class="n">cube</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">load_cube</span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">sample_data_path</span><span class="p">(</span><span class="s">&#39;GloSea4/ensemble_000.pp&#39;</span><span class="p">))</span>
+<span class="n">add_month</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">cube</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">))</span>
+
+<span class="n">sub_cube</span> <span class="o">=</span> <span class="n">cube</span><span class="p">[:,</span> <span class="mi">89</span><span class="p">,</span> <span class="mi">102</span><span class="p">]</span>
+<span class="n">qplt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sub_cube</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s">&#39;month&#39;</span><span class="p">),</span> <span class="n">sub_cube</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s">&#39;plot_1d.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s">&#39;tight&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="missing-data-tolerance-for-area-weighted-calculations">
+<span id="mdtol"></span><h3>Missing data tolerance for area-weighted calculations<a class="headerlink" href="#missing-data-tolerance-for-area-weighted-calculations" title="Permalink to this headline">¶</a></h3>
+<p>Missing data tolerance (mdtol) describes the fractional tolerance for missing
+data within any given grid cell in a regridding operation. Thus if the fraction
+of missing data (from overlapping source grid cells) in a grid cell exceeds the
+value of mdtol then the grid cell will be masked.</p>
+<p>By extension, an mdtol of 0 means no missing data is tolerated while an mdtol of 1
+means that grid cells will only be masked if all contributing elements from the
+source grid are masked.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../examples/index.html" title="Iris examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../iris/iris/util.html" title="iris.util"
+             >previous</a> |</li>
+        <li><a href="../index.html">home</a>|&nbsp;</li>
+        <li><a href="../examples/index.html">examples</a>|&nbsp;</li>
+        <li><a href="../gallery.html">gallery</a>|&nbsp;</li>
+        <li><a href="../contents.html">contents</a>|&nbsp;</li>
+ 
+      </ul>
+    </div>
+
+    <div class="footer">
+    <p style="text-align: left; float: left; margin: 0px; padding: 0 0 0 5px;">Documentation licensed under the <a href="http://reference.data.gov.uk/id/open-government-licence" rel="license">Open Government Licence</a></p>
+        &copy; <a href="../copyright.html">British Crown Copyright</a> 2010 - 2013, Met Office
+    </div>
+
+
+  </body>
+</html>

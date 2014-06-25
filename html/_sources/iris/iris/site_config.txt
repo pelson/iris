@@ -1,0 +1,20 @@
+.. _iris.site_config:
+
+================
+iris.site_config
+================
+
+
+
+.. currentmodule:: iris
+
+.. automodule:: iris.site_config
+
+In this module:
+
+ * :py:obj:`update_disabled`
+
+
+
+.. autofunction:: iris.site_config.update_disabled
+
