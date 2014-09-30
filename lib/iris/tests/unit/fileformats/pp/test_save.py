@@ -22,6 +22,8 @@ import iris.tests as tests
 
 import mock
 
+from iris.coords import DimCoord
+from iris.coord_systems import TransverseMercator
 from iris.fileformats._ff_cross_references import STASH_TRANS
 import iris.fileformats.pp as pp
 import iris.tests.stock as stock
@@ -120,6 +122,45 @@ class TestLbsrceProduction(tests.IrisTest):
     def test_um_version(self):
         self.check_cube_um_source_yields_lbsrce(
             'Data from Met Office Unified Model 12.17', '25.36', 25361111)
+
+
+class TestHorizontalCoordinates(tests.IrisTest):
+    def setUp(self):
+        self.xcube = stock.lat_lon_cube()
+        self.ycube = stock.lat_lon_cube()
+        self.xcube.remove_coord('longitude')
+        self.ycube.remove_coord('latitude')
+
+    def test_projection_x_vector(self):
+        x_coord = DimCoord([0.5, 1.25, 2, 2.75], 'projection_x_coordinate')
+        self.xcube.add_dim_coord(x_coord, 1)
+        field = _pp_save_ppfield_values(self.xcube)
+        self.assertEqual(field.lbnpt, 4)
+        self.assertEqual(field.bdx, 0.75)
+        self.assertEqual(field.bzx, -0.25)
+
+    def test_projection_y_vector(self):
+        y_coord = DimCoord([0.5, 1.25, 2], 'projection_y_coordinate')
+        self.ycube.add_dim_coord(y_coord, 0)
+        field = _pp_save_ppfield_values(self.ycube)
+        self.assertEqual(field.lbrow, 3)
+        self.assertEqual(field.bdy, 0.75)
+        self.assertEqual(field.bzy, -0.25)
+
+
+class TestLbprojCoordinateSystems(tests.IrisTest):
+    def test_projection_y_vector(self):
+        cube = stock.lat_lon_cube()
+        lat = cube.coord('latitude')
+        lon = cube.coord('longitude')
+
+        lat.coord_system = TransverseMercator(0, 0, 0, 0, 0)
+        lon.coord_system = TransverseMercator(0, 0, 0, 0, 0)
+        lon.rename('projection_x_coordinate')
+        lat.rename('projection_y_coordinate')
+
+        field = _pp_save_ppfield_values(cube)
+        self.assertEqual(field.lbproj, 15)
 
 
 if __name__ == "__main__":
