@@ -274,7 +274,7 @@ setup(
                 ['fileformats/_pyke_rules/*.k?b'] + \
                 ['tests/stock*.npz']
         },
-    data_files=[('iris', ['CHANGES', 'COPYING', 'COPYING.LESSER'])],
+    data_files=[('share/licenses/iris', ['CHANGES', 'COPYING', 'COPYING.LESSER'])],
     tests_require=['nose'],
     features={
         'unpack': setuptools.Feature(

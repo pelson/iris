@@ -1395,8 +1395,9 @@ class DimCoord(Coord):
         if hasattr(self, '_points') and self._points is not None:
             # Check that setting these points wouldn't change self.shape
             if points.shape != self.shape:
-                raise ValueError("New points shape must match existing points "
-                                 "shape.")
+                raise ValueError("New points shape {} must match existing "
+                                 "points shape {}.".format(points.shape,
+                                                           self.shape))
 
         # Checks for 1d, numeric, monotonic
         if points.ndim != 1:

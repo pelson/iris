@@ -365,11 +365,15 @@ def _draw_2d_from_points(draw_method_name, arg_func, cube, *args, **kwargs):
 
 
 def _fixup_dates(coord, values):
-    if coord.units.calendar is not None and values.ndim == 1:
-        r = [datetime.datetime(*(coord.units.num2date(val).timetuple()[0:6]))
-             for val in values]
-        values = np.empty(len(r), dtype=object)
-        values[:] = r
+    if coord.units.calendar is not None:
+        values = coord.units.num2date(values)
+        cal = coord.units.calendar
+        for dt in values.flat:
+            dt.calendar = cal
+#        r = [datetime.datetime(*(coord.units.num2date(val).timetuple()[0:6]))
+#             for val in values]
+#        values = np.empty(len(r), dtype=object)
+#        values[:] = r
     return values
 
 
