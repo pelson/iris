@@ -205,6 +205,96 @@ class _FieldMetaclass(type):
                                                        bases, class_dict)
 
 
+from biggus import Array, ArrayContainer
+import biggus
+
+
+# field type, packing code...
+#save_dict = {(5, 0): None}
+
+from contextlib import contextmanager
+
+
+class ArrayFromFile(Array):
+    def __init__(self, fh, location, dtype, shape,
+                 missing_data_value=None, data_length=None):
+        #: The open file handle, or filename, where the data can be found.
+        self.fh = fh
+        #: The position in the file. The file handle will be seeked to
+        #: this location.
+        self.location = location
+        self._dtype = np.dtype(dtype)
+        self._shape = tuple(shape)
+        self.missing_data_value = missing_data_value
+        if data_length is None:
+            data_length = self._dtype.size * np.prod(self.shape)
+        self._data_length = data_length
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def dtype(self):
+        return self._dtype
+
+    def __getitem__(self, keys):
+        return ArrayContainer(self).__getitem__(keys)
+
+    @contextmanager
+    def _open_fh(self):
+        if isinstance(self.fh, basestring):
+            with open(self.fh, 'rb') as fh:
+                yield fh
+        else:
+            # The file handle will be yielded, but the context manager will
+            # not close the fh automatically.
+            yield self.fh
+
+    def raw_bytes(self):
+        with self._open_fh() as fh:
+            fh.seek(self.location)
+            return fh.read(self._data_length)
+
+    def ndarray(self):
+        with self._open_fh() as fh:
+            fh.seek(self.location)
+            array = np.fromfile(fh, self.dtype, count=np.prod(self.shape))
+            return array.reshape(self.shape)
+
+    def masked_array(self):
+        array = self.ndarray()
+        return np.ma.masked_equal(array, self.missing_data_value, copy=False)
+
+
+class WGDOSPackedArray(ArrayFromFile):
+    def __init__(self, *args, **kwargs):
+        super(WGDOSPackedArray, self).__init__(*args, **kwargs)
+        if self.ndim != 2:
+            raise ValueError('WGDOS data must be 2 dimensional.')
+
+    def ndarray(self):
+        from iris.fileformats.pp_packing import wgdos_unpack
+
+        rows, cols = self.shape
+        return wgdos_unpack(self.raw_bytes(), rows, cols,
+                            self.missing_data_value)
+
+
+class RLEPackedArray(ArrayFromFile):
+    def __init__(self, *args, **kwargs):
+        super(RLEPackedArray, self).__init__(*args, **kwargs)
+        if self.ndim != 2:
+            raise ValueError('RLE data must be 2 dimensional.')
+
+    def ndarray(self):
+        from iris.fileformats.pp_packing import rle_decode
+
+        rows, cols = self.shape
+        return rle_decode(self.raw_bytes(), rows, cols,
+                          self.missing_data_value)
+
+
 class Field(object):
     """
     Represents a single entry in the LOOKUP component and its
@@ -222,7 +312,7 @@ class Field(object):
     #: Zero-based index for lbnrec.
     LBNREC_OFFSET = 29
 
-    def __init__(self, int_headers, real_headers, data_provider):
+    def __init__(self, int_headers, real_headers, data_provider=None):
         """
         Create a Field from the integer headers, the floating-point
         headers, and an object which provides access to the
@@ -234,23 +324,30 @@ class Field(object):
             A sequence of integer header values.
         * real_headers:
             A sequence of floating-point header values.
-        * data_provider:
-            Either, an object with a `read_data()` method which will
-            provide the corresponding values from the DATA component,
-            or a NumPy array, or None.
+        * data:
+            TODO
 
         """
         #: A NumPy array of integer header values.
         self.int_headers = np.asarray(int_headers)
         #: A NumPy array of floating-point header values.
         self.real_headers = np.asarray(real_headers)
-        self._data_provider = data_provider
+        #: The :class:`biggus.Array` for this field.
+        self.data_provider = data_provider
+
+    @property
+    def data(self):
+        if self.data_provider is None:
+            # TODO: Raise?
+            return None
+        else:
+            return self.data_provider.construct_array()
 
     def __eq__(self, other):
         try:
             eq = (np.all(self.int_headers == other.int_headers) and
                   np.all(self.real_headers == other.real_headers) and
-                  np.all(self.get_data() == other.get_data()))
+                  np.all(self.data == other.data))
         except AttributeError:
             eq = NotImplemented
         return eq
@@ -267,33 +364,6 @@ class Field(object):
 
         """
         return len(self.int_headers) + len(self.real_headers)
-
-    def get_data(self):
-        """
-        Return a NumPy array containing the data for this field.
-
-        Data packed with the WGDOS archive method will be unpacked and
-        returned as int/float data as appropriate.
-
-        """
-        data = None
-        if isinstance(self._data_provider, np.ndarray):
-            data = self._data_provider
-        elif self._data_provider is not None:
-            data = self._data_provider.read_data(self)
-        return data
-
-    def set_data(self, data):
-        """
-        Set the data payload for this field.
-
-        * data:
-            Either, an object with a `read_data()` method which will
-            provide the corresponding values from the DATA component,
-            or a NumPy array, or None.
-
-        """
-        self._data_provider = data
 
 
 class Field2(Field):
@@ -318,6 +388,10 @@ class Field3(Field):
 _FIELD_CLASSES = {2: Field2, 3: Field3, -99: Field}
 
 
+#_DATA_CLASSES = {(None, 1): WGDOSPackedArray, (None, 3): RLEPackedData}
+
+
+
 # Maps word size and then lbuser1 (i.e. the field's data type) to a dtype.
 _DATA_DTYPES = {4: {1: '>f4', 2: '>i4', 3: '>i4'},
                 8: {1: '>f8', 2: '>i8', 3: '>i8'}}
@@ -325,6 +399,106 @@ _DATA_DTYPES = {4: {1: '>f4', 2: '>i4', 3: '>i4'},
 
 _CRAY32_SIZE = 4
 _WGDOS_SIZE = 4
+
+
+class RectangularUMData(object):
+    #: Zero-based index for lbpack.
+    LBPACK_OFFSET = 20
+    #: Zero-based index for lbuser1.
+    LBUSER1_OFFSET = 38
+    #: Zero-based index for lbrow.
+    LBROW_OFFSET = 17
+    #: Zero-based index for lbnpt.
+    LBNPT_OFFSET = 18
+    #: Zero-based index for bmdi.
+    BMDI_OFFSET = 62
+
+    def __init__(self, ints, reals, source, offset, word_size):
+        self.lbpack = ints[self.LBPACK_OFFSET]
+        #: The data type of the data.
+        self.lbuser1 = ints[self.LBUSER1_OFFSET]
+        self.lbnrec = ints[Field.LBNREC_OFFSET]
+        self.bmdi = reals[self.BMDI_OFFSET - _NUM_FIELD_INTS]
+
+        self.lbrow = ints[self.LBROW_OFFSET]
+        self.lbnpt = ints[self.LBNPT_OFFSET]
+
+        self.source = source
+        self.offset = offset
+        self.word_size = word_size
+
+    def construct_array(self):
+        lbpack = self.lbpack
+        # Ensure lbpack.n4 (number format) is: native, CRAY, or IEEE.
+        lbpack_n4 = (lbpack // 1000) % 10
+        if lbpack_n4 not in (0, 2, 3):
+            raise ValueError('Unsupported number format: {}'.format(lbpack_n4))
+        lbpack = lbpack % 1000
+
+        shape = (self.lbrow, self.lbnpt)
+
+        if lbpack == 1:
+            data_size = ((self.lbnrec * 2) - 1) * _WGDOS_SIZE
+            dtype = '>f4'
+            array = WGDOSPackedArray(self.source, self.offset, dtype, shape,
+                                     data_length=data_size,
+                                     missing_data_value=self.bmdi)
+#        elif lbpack == 4:
+#            array = RLEPackedArray(self.source, self.offset, self.word_size)
+        elif lbpack == 0:
+            dtype = _DATA_DTYPES[self.word_size][self.lbuser1]
+            array = ArrayFromFile(self.source, self.offset, dtype,
+                                  shape, self.word_size,
+                                  missing_data_value=self.bmdi)
+        elif lbpack == 2:
+            dtype = _DATA_DTYPES[_CRAY32_SIZE][self.lbuser1]
+            array = ArrayFromFile(self.source, self.offset, dtype,
+                                  shape, _CRAY32_SIZE,
+                                  missing_data_value=self.bmdi)
+        else:
+            raise ValueError('Unsupported UM data type.')
+
+        return array
+
+
+class BoundaryUMData(object):
+    #: Zero-based index for lbpack.
+    LBPACK_OFFSET = 20
+    #: Zero-based index for lbuser1.
+    LBUSER1_OFFSET = 38
+    #: Zero-based index for bmdi.
+    BMDI_OFFSET = 62
+
+    def __init__(self, ints, reals, source, offset, word_size):
+        self.lbuser1 = ints[self.LBUSER1_OFFSET]
+        self.lbpack = ints[self.LBPACK_OFFSET]
+        self.lblrec = ints[Field.LBLREC_OFFSET]
+        self.bmdi = reals[self.BMDI_OFFSET - _NUM_FIELD_INTS]
+        self.lbhem = ints[self.LBHEM_OFFSET]
+
+        self.source = source
+        self.offset = offset
+        self.word_size = word_size
+
+    def construct_array(self):
+        self.source.seek(self.offset)
+        lbpack = self.lbpack
+        # Ensure lbpack.n4 (number format) is: native, CRAY, or IEEE.
+        format = (lbpack // 1000) % 10
+        if format not in (0, 2, 3):
+            raise ValueError('Unsupported number format: {}'.format(format))
+        lbpack = lbpack % 1000
+        if lbpack == 0:
+            word_size = self.word_size
+        elif lbpack == 2:
+            word_size = _CRAY32_SIZE
+        else:
+            msg = 'Unsupported lbpack for LBC: {}'.format(self.lbpack)
+            raise ValueError(msg)
+        dtype = _DATA_DTYPES[word_size][self.lbuser1]
+        data = np.fromfile(self.source, dtype, count=self.lblrec)
+        data = data.reshape(self.lbhem - 100, -1)
+        return data
 
 
 class _NormalDataProvider(object):
@@ -501,9 +675,10 @@ class FieldsFileVariant(object):
         real_dtype = '>f{}'.format(word_size)
 
         if self.fixed_length_header.dataset_type == 5:
-            data_class = _BoundaryDataProvider
+#            um_data_style = BoundaryUMData
+            raise NotImplementedError()
         else:
-            data_class = _NormalDataProvider
+            um_data_style = RectangularUMData
 
         lookup = constants('lookup', int_dtype)
         fields = []
@@ -515,27 +690,36 @@ class FieldsFileVariant(object):
                 running_offset = ((self.fixed_length_header.data_start - 1) *
                                   word_size)
                 for raw_headers in lookup.T:
+                    klass = _FIELD_CLASSES[raw_headers[Field.LBREL_OFFSET]]
+                    ints = raw_headers[:_NUM_FIELD_INTS]
+                    reals = raw_headers[_NUM_FIELD_INTS:].view(real_dtype)
+
                     if raw_headers[0] == -99:
                         data_provider = None
                     else:
                         offset = running_offset
-                        data_provider = data_class(source, offset, word_size)
-                    klass = _FIELD_CLASSES[raw_headers[Field.LBREL_OFFSET]]
-                    ints = raw_headers[:_NUM_FIELD_INTS]
-                    reals = raw_headers[_NUM_FIELD_INTS:].view(real_dtype)
+                        data_provider = um_data_style(ints, reals,
+                                                      source, offset,
+                                                      word_size)
+#                        data_provider = data_class(source, offset, word_size)
+
                     fields.append(klass(ints, reals, data_provider))
                     running_offset += (raw_headers[Field.LBLREC_OFFSET] *
                                        word_size)
             else:
                 for raw_headers in lookup.T:
+                    klass = _FIELD_CLASSES[raw_headers[Field.LBREL_OFFSET]]
+                    ints = raw_headers[:_NUM_FIELD_INTS]
+                    reals = raw_headers[_NUM_FIELD_INTS:].view(real_dtype)
+
                     if raw_headers[0] == -99:
                         data_provider = None
                     else:
                         offset = raw_headers[Field.LBEGIN_OFFSET] * word_size
-                        data_provider = data_class(source, offset, word_size)
-                    klass = _FIELD_CLASSES[raw_headers[Field.LBREL_OFFSET]]
-                    ints = raw_headers[:_NUM_FIELD_INTS]
-                    reals = raw_headers[_NUM_FIELD_INTS:].view(real_dtype)
+                        data_provider = um_data_style(ints, reals,
+                                                      source, offset,
+                                                      word_size)
+
                     fields.append(klass(ints, reals, data_provider))
         self.fields = fields
 
@@ -717,3 +901,15 @@ class FieldsFileVariant(object):
                     os.rename(tmp_file.name, self.filename)
             finally:
                 self._source.close()
+
+
+if __name__ == '__main__':
+    fname = '/data/local/dataZoo/FF/ancillary_fixed_length_header'
+    fname = '/data/local/dataZoo/FF/alyku.pp0'
+    ff = FieldsFileVariant(fname)
+    print(ff)
+    f = ff.fields[0]
+    print(f.data)
+    print(type(f.data))
+    print(f.data.ndarray())
+    print(f.data_provider)
