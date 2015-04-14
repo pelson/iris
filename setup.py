@@ -13,6 +13,16 @@ import sys
 import numpy as np
 import setuptools
 
+
+try:
+    # Cython is needed for the packing library.
+    # The packing library is disabled by default, so it isn't a big
+    # deal if we don't have Cython at this point.
+    from Cython.Distutils import build_ext
+except ImportError:
+    from distutils.command import build_ext
+
+
 # Add full path so Python doesn't load any __init__.py in the intervening
 # directories, thereby saving setup.py from additional dependencies.
 sys.path.append('lib/iris/tests/runner')
@@ -210,21 +220,19 @@ setup(
         },
     data_files=[('iris', ['CHANGES', 'COPYING', 'COPYING.LESSER'])],
     tests_require=['nose'],
+    ext_modules=[],
     features={
         'unpack': setuptools.Feature(
-            "use of UKMO unpack library",
+            "use of UM packing library",
             standard=False,
             ext_modules=[
-                setuptools.Extension(
-                    'iris.fileformats.pp_packing',
-                    ['src/iris/fileformats/pp_packing/pp_packing.c'],
-                    libraries=['mo_unpack'],
-                    include_dirs=[np.get_include()]
-                )
-            ]
+                setuptools.Extension("iris.fileformats.um.packing",
+                                     ["lib/iris/fileformats/um/packing.pyx"],
+                                     include_dirs=[np.get_include()],
+                                     libraries=['mo_unpack'])]
         )
     },
     cmdclass={'test': SetupTestRunner, 'build_py': BuildPyWithExtras,
-              'std_names': MakeStdNames, 'pyke_rules': MakePykeRules,
-              'clean_source': CleanSource},
+     'std_names': MakeStdNames, 'pyke_rules': MakePykeRules,
+     'clean_source': CleanSource, 'build_ext': build_ext},
 )

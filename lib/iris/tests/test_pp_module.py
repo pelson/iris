@@ -198,29 +198,34 @@ class TestPPField_GlobalTemperature(IrisPPTest):
         self.assertEqual(self.file_checksum(temp_filename), self.file_checksum(filepath))
         
         os.remove(temp_filename)
-    
+
 
 @tests.skip_data
 class TestPackedPP(IrisPPTest):
     def test_wgdos(self):
-        r = pp.load(tests.get_data_path(('PP', 'wgdos_packed', 'nae.20100104-06_0001.pp')))
-        
-        # Check that the result is a generator and convert to a list so that we can index and get the first one
+        r = pp.load(tests.get_data_path(('PP', 'wgdos_packed',
+                                         'nae.20100104-06_0001.pp')))
+
+        # Check that the result is a generator and convert to a list so that we
+        # can index and get the first one.
         self.assertEqual( type(r), GeneratorType)
         r = list(r)
-        
+
         self.check_pp(r, ('PP', 'nae_unpacked.pp.txt'))
-        
-        # check that trying to save this field again raises an error (we cannot currently write WGDOS packed fields)
+
+        # check that trying to save this field again raises an error
+        # (we cannot currently write WGDOS packed fields)
         temp_filename = iris.util.create_temp_filename(".pp")
-        self.assertRaises(NotImplementedError, r[0].save, open(temp_filename, 'wb'))
+        self.assertRaises(NotImplementedError, r[0].save, open(temp_filename,
+                                                               'wb'))
         os.remove(temp_filename)
-        
+
     def test_rle(self):
         r = pp.load(tests.get_data_path(('PP', 'ocean_rle', 'ocean_rle.pp')))
 
-        # Check that the result is a generator and convert to a list so that we can index and get the first one
-        self.assertEqual( type(r), GeneratorType)
+        # Check that the result is a generator and convert to a list so that
+        # we can index and get the first one.
+        self.assertEqual(type(r), GeneratorType)
         r = list(r)
 
         self.check_pp(r, ('PP', 'rle_unpacked.pp.txt'))

@@ -48,7 +48,7 @@ def apply_proxy(module_name, dic):
     ensure the scope of the import can be propagated out of this package.
     Also, note the splitting of name - this is because '__import__()'
     requires full package path, unlike 'import' (this issue is
-    explicitly seen in lib/iris/fileformats/pp.py importing pp_packing)
+    explicitly seen in lib/iris/fileformats/pp.py importing packing)
 
     """
     name = module_name.split('.')[-1]

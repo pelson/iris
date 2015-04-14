@@ -6,6 +6,7 @@ recursive-include lib/iris/tests/results *.cml *.cdl *.txt *.xml
 recursive-include lib/iris/etc *.txt
 include lib/iris/fileformats/_pyke_rules/*.k?b
 include lib/iris/tests/stock*.npz
+include lib/iris/fileformats/um *.pyx *.c
 
 # File required to build docs
 recursive-include docs Makefile *.js *.png *.py *.rst
@@ -14,8 +15,4 @@ recursive-exclude docs/iris/build *
 # Files required to build std_names module
 include tools/generate_std_names.py
 include etc/cf-standard-name-table.xml
-
-# Extension source
-recursive-include src *.c *.cc *.cpp *.h
-
 

@@ -361,10 +361,10 @@ class _NormalDataProvider(object):
             data = np.fromfile(self.source, dtype, count=rows * cols)
             data = data.reshape(rows, cols)
         elif lbpack == 1:
-            from iris.fileformats.pp_packing import wgdos_unpack
+            from iris.fileformats.um.packing import unpack_wgdos
             data_size = ((field.lbnrec * 2) - 1) * _WGDOS_SIZE
             data_bytes = self.source.read(data_size)
-            data = wgdos_unpack(data_bytes, field.lbrow, field.lbnpt,
+            data = unpack_wgdos(data_bytes, field.lbrow, field.lbnpt,
                                 field.bmdi)
         else:
             raise ValueError('Unsupported lbpack: {}'.format(field.lbpack))

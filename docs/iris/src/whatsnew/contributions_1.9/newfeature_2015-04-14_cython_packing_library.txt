@@ -1,0 +1,1 @@
+* Added :mod:`iris.fileformats.um.packing` which has :func:`iris.fileformats.um.packing.unpack_wgdos` and `iris.fileformats.um.decode_rle` for the replacement of the existing ``iris.fileformats.pp_packing``. :func:`iris.fileformats.um.packing.pack_wgdos` and :func:`iris.fileformats.um.packing.encode_rle` have been added to bring in the ability to pack UM data.
