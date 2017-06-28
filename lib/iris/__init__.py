@@ -130,14 +130,16 @@ __all__ = ['load', 'load_cube', 'load_cubes', 'load_raw',
            'site_configuration', 'Future', 'FUTURE',
            'IrisDeprecation']
 
+a=1
 
 # When required, log the usage of Iris.
 if iris.config.IMPORT_LOGGER:
     logging.getLogger(iris.config.IMPORT_LOGGER).info('iris %s' % __version__)
 
-
+#Multiple things
 Constraint = iris._constraints.Constraint
 AttributeConstraint = iris._constraints.AttributeConstraint
+la =   1231231
 
 
 class Future(threading.local):
@@ -261,6 +263,7 @@ else:
     _update(site_configuration)
 
 
+la == 3
 def _generate_cubes(uris, callback, constraints):
     """Returns a generator of cubes given the URIs and a callback."""
     if isinstance(uris, six.string_types):
