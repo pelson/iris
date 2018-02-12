@@ -6,8 +6,6 @@ Iris
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.51860.svg)](https://dx.doi.org/10.5281/zenodo.51860)
 [![Documentation for master branch ](https://img.shields.io/badge/docs-master-blue.svg)](https://scitools-docs.github.io/iris/master/index.html)
 
-(C) British Crown Copyright 2010 - 2017, Met Office
-
 Iris is a powerful, easy to use, community-driven Python library for
 analysing and visualising meteorological and oceanographic data sets.
 
@@ -53,20 +51,7 @@ There is also a documentation build for the latest code in the main GitHub repos
 Copyright and licence
 ---------------------
 
-(C) British Crown Copyright 2010 - 2017, Met Office
+Iris is licensed under the BSD 3-clause license, and is British Crown Copyright.
 
-This file is part of Iris.
-
-Iris is free software: you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the
-Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Iris is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with Iris.  If not, see <http://www.gnu.org/licenses/>.
+LICENSE.txt has the full license and copyright details.
 
